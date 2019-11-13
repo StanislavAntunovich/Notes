@@ -10,8 +10,8 @@
         android:supportsRtl="true"
         android:name="androidx.multidex.MultiDexApplication"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.NoteActivity"/>
-        <activity android:name=".activities.MainActivity">
+        <activity android:name=".activities.SplashActivity"
+            android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -19,6 +19,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".activities.NoteActivity"/>
+        <activity android:name=".activities.MainActivity"/>
     </application>
 
 </manifest>

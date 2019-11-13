@@ -3,74 +3,103 @@ package ru.geekbrains.notes.data.provider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.github.ajalt.timberkt.Timber
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QueryDocumentSnapshot
 import ru.geekbrains.notes.data.NoteResult
 import ru.geekbrains.notes.data.entity.Note
+import ru.geekbrains.notes.data.entity.User
+import ru.geekbrains.notes.data.exceptions.NoAuthException
 
 class FireStoreProvider : RemoteDataProvider {
 
     companion object {
         private const val NOTES_COLLECTION = "notes"
+        private const val USERS_COLLECTION = "users"
     }
 
-    private val store = FirebaseFirestore.getInstance()
-    private val notesRef = store.collection(NOTES_COLLECTION)
+    private val store by lazy { FirebaseFirestore.getInstance() }
+    private val currentUser
+        get() = FirebaseAuth.getInstance().currentUser
 
-    override fun subscribeToAll(): LiveData<NoteResult> {
-        val result = MutableLiveData<NoteResult>()
+    private fun getUserNotesCollection() =
+        currentUser?.let {
+            store.collection(USERS_COLLECTION).document(it.uid).collection(NOTES_COLLECTION)
+        } ?: throw NoAuthException()
 
-        Timber.d {"getting all"}
+    override fun subscribeToAll(): LiveData<NoteResult> =
+        MutableLiveData<NoteResult>().apply {
+            try {
+                Timber.d { "getting all" }
 
-        notesRef.addSnapshotListener {snapshot, e ->
-            e?.let { result.value = NoteResult.Error(it) }
-                ?: let {
-                    snapshot?.let {
-                        val notes = mutableListOf<Note>()
-                        for (doc: QueryDocumentSnapshot in snapshot) {
-                            val note: Note = doc.toObject(Note::class.java)
-                            notes.add(note)
+                getUserNotesCollection().addSnapshotListener { snapshot, e ->
+                    e?.let { value = NoteResult.Error(it) }
+                        ?: let {
+                            snapshot?.let {
+                                val notes = mutableListOf<Note>()
+                                for (doc: QueryDocumentSnapshot in snapshot) {
+                                    val note: Note = doc.toObject(Note::class.java)
+                                    notes.add(note)
+                                }
+                                Timber.d { "got all notes: $notes" }
+                                value = NoteResult.Success(notes)
+                            }
                         }
-                        Timber.d {"got all notes: $notes"}
-                        result.value = NoteResult.Success(notes)
-                    }
                 }
+
+            } catch (e: Throwable) {
+                value = NoteResult.Error(e)
+            }
         }
-        return result
-    }
 
-    override fun getNoteById(id: String): LiveData<NoteResult> {
-        val result = MutableLiveData<NoteResult>()
 
-        Timber.d {"getting by id: $id"}
+    override fun getNoteById(id: String): LiveData<NoteResult> =
+        MutableLiveData<NoteResult>().apply {
+            try {
+                Timber.d { "getting by id: $id" }
 
-        notesRef.document(id).get()
-            .addOnSuccessListener {
-                val note = it.toObject(Note::class.java)
-                result.value = NoteResult.Success(note)
-                Timber.d {"getting success with $note"}
+                getUserNotesCollection().document(id).get()
+                    .addOnSuccessListener {
+                        val note = it.toObject(Note::class.java)
+                        value = NoteResult.Success(note)
+                        Timber.d { "getting success with $note" }
+                    }
+                    .addOnFailureListener {
+                        value = NoteResult.Error(it)
+                        Timber.d { "can't get note -> error: ${it.message}" }
+                    }
+
+            } catch (e: Throwable) {
+                value = NoteResult.Error(e)
             }
-            .addOnFailureListener {
-                result.value = NoteResult.Error(it)
-                Timber.d {"can't get note -> error: ${it.message}"}
-            }
-        return result
-    }
+        }
 
-    override fun saveNote(note: Note): LiveData<NoteResult> {
-        val result = MutableLiveData<NoteResult>()
 
-        notesRef.document(note.id)
-            .set(note)
-            .addOnSuccessListener {
-                result.value = NoteResult.Success(note)
-                Timber.d {"saved $note"}
-            }
-            .addOnFailureListener {
-                result.value = NoteResult.Error(it)
-                Timber.d {"error saving $note -> ${it.message}"}
-            }
+    override fun saveNote(note: Note): LiveData<NoteResult> =
+        MutableLiveData<NoteResult>().apply {
+            try {
+                getUserNotesCollection().document(note.id)
+                    .set(note)
+                    .addOnSuccessListener {
+                        value = NoteResult.Success(note)
+                        Timber.d { "saved $note" }
+                    }
+                    .addOnFailureListener {
+                        value = NoteResult.Error(it)
+                        Timber.d { "error saving $note -> ${it.message}" }
+                    }
 
-        return result
-    }
+            } catch (e: Throwable) {
+                value = NoteResult.Error(e)
+            }
+        }
+
+
+    override fun getCurrentUser(): LiveData<User?> =
+        MutableLiveData<User?>().apply {
+            value = currentUser?.let {
+                User(it.displayName ?: "", it.email ?: "")
+            }
+        }
+
 }

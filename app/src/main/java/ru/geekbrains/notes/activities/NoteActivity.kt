@@ -11,17 +11,16 @@ import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.activity_note.*
 import ru.geekbrains.notes.R
 import ru.geekbrains.notes.base.BaseActivity
+import ru.geekbrains.notes.common.format
 import ru.geekbrains.notes.data.entity.Note
 import ru.geekbrains.notes.livedata.NoteViewState
 import ru.geekbrains.notes.viewmodels.NoteViewModel
-import java.text.SimpleDateFormat
 import java.util.*
 
 class NoteActivity : BaseActivity<Note?, NoteViewState>() {
 
     companion object {
         private val EXTRA_NOTE = NoteActivity::class.java.name + "extra"
-        private const val DATE_TIME_FORMAT = "dd.MM.yyyy HH:mm"
 
         fun start(context: Context, noteId: String? = null)  =
              Intent(context, NoteActivity::class.java).run {
@@ -110,9 +109,6 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
     }
 
     private fun setAppBarTitle() {
-        supportActionBar?.title = note?.let {
-            SimpleDateFormat(DATE_TIME_FORMAT, Locale.getDefault())
-                .format(it.lastChanged)
-        } ?: getString(R.string.new_note_title)
+        supportActionBar?.title = note?.lastChanged?.format() ?: getString(R.string.new_note_title)
     }
 }

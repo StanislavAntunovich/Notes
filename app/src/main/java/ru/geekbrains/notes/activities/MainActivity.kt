@@ -1,17 +1,31 @@
 package ru.geekbrains.notes.activities
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.GridLayoutManager
+import com.firebase.ui.auth.AuthUI
 import kotlinx.android.synthetic.main.activity_main.*
 import ru.geekbrains.notes.R
 import ru.geekbrains.notes.adapters.NotesAdapter
 import ru.geekbrains.notes.base.BaseActivity
 import ru.geekbrains.notes.data.entity.Note
+import ru.geekbrains.notes.dialogs.LogOutDialog
 import ru.geekbrains.notes.livedata.MainViewState
 import ru.geekbrains.notes.viewmodels.MainViewModel
 
-class MainActivity : BaseActivity<List<Note>?, MainViewState>() {
+class MainActivity : BaseActivity<List<Note>?, MainViewState>(), LogOutDialog.LogoutListener {
+
+    companion object {
+        fun start(context: Context) = Intent(context, MainActivity::class.java).run {
+            context.startActivity(this)
+        }
+    }
+
     private lateinit var adapter: NotesAdapter
 
     override val viewModel: MainViewModel by lazy {
@@ -39,5 +53,30 @@ class MainActivity : BaseActivity<List<Note>?, MainViewState>() {
         data?.let {
             adapter.notes = it
         }
+    }
+
+    private fun showLogOutDialog() {
+        supportFragmentManager.findFragmentByTag(LogOutDialog.TAG) ?: LogOutDialog.create().show(
+            supportFragmentManager,
+            LogOutDialog.TAG
+        )
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?) =
+        menuInflater.inflate(R.menu.main, menu).let { true }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean =
+        when (item.itemId) {
+            R.id.logout -> showLogOutDialog().let { true }
+            else -> super.onOptionsItemSelected(item)
+        }
+
+    override fun onLogOut() {
+        AuthUI.getInstance()
+            .signOut(this)
+            .addOnCompleteListener {
+                startActivity(Intent(this, SplashActivity::class.java))
+                finish()
+            }
     }
 }

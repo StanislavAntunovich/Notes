@@ -1,14 +1,12 @@
 package ru.geekbrains.notes.activities
 
-import androidx.lifecycle.ViewModelProviders
+import org.koin.android.viewmodel.ext.android.viewModel
 import ru.geekbrains.notes.base.BaseActivity
 import ru.geekbrains.notes.livedata.SplashViewState
 import ru.geekbrains.notes.viewmodels.SplashViewModel
 
 class SplashActivity: BaseActivity<Boolean?, SplashViewState>() {
-    override val viewModel by lazy {
-        ViewModelProviders.of(this).get(SplashViewModel::class.java)
-    }
+    override val viewModel: SplashViewModel by viewModel()
 
     override val layoutResId: Int? = null
 

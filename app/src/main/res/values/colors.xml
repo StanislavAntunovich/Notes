@@ -5,6 +5,7 @@
     <color name="colorAccent">#D81B60</color>
 
     <color name="appbar_text_color">#FFFFFF</color>
+    <color name="text_secondary">#66000000</color>
 
     <color name="white">#D3CBCE</color>
     <color name="red">#E60A1D</color>

@@ -4,12 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
-import android.view.MenuInflater
 import android.view.MenuItem
-import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.GridLayoutManager
 import com.firebase.ui.auth.AuthUI
 import kotlinx.android.synthetic.main.activity_main.*
+import org.koin.android.viewmodel.ext.android.viewModel
 import ru.geekbrains.notes.R
 import ru.geekbrains.notes.adapters.NotesAdapter
 import ru.geekbrains.notes.base.BaseActivity
@@ -28,11 +27,10 @@ class MainActivity : BaseActivity<List<Note>?, MainViewState>(), LogOutDialog.Lo
 
     private lateinit var adapter: NotesAdapter
 
-    override val viewModel: MainViewModel by lazy {
-        ViewModelProviders.of(this).get(MainViewModel::class.java)
-    }
+    override val viewModel: MainViewModel by viewModel()
 
     override val layoutResId = R.layout.activity_main
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -11,16 +11,18 @@ import ru.geekbrains.notes.data.entity.Note
 import ru.geekbrains.notes.data.entity.User
 import ru.geekbrains.notes.data.exceptions.NoAuthException
 
-class FireStoreProvider : RemoteDataProvider {
+class FireStoreProvider(
+    private val firebaseAuth: FirebaseAuth,
+    private val store: FirebaseFirestore
+) : RemoteDataProvider {
 
     companion object {
         private const val NOTES_COLLECTION = "notes"
         private const val USERS_COLLECTION = "users"
     }
 
-    private val store by lazy { FirebaseFirestore.getInstance() }
     private val currentUser
-        get() = FirebaseAuth.getInstance().currentUser
+        get() = firebaseAuth.currentUser
 
     private fun getUserNotesCollection() =
         currentUser?.let {
@@ -89,6 +91,22 @@ class FireStoreProvider : RemoteDataProvider {
                         Timber.d { "error saving $note -> ${it.message}" }
                     }
 
+            } catch (e: Throwable) {
+                value = NoteResult.Error(e)
+            }
+        }
+
+    override fun deleteNote(noteId: String): LiveData<NoteResult> =
+        MutableLiveData<NoteResult>().apply {
+            try {
+                getUserNotesCollection().document(noteId)
+                    .delete()
+                    .addOnSuccessListener {
+                        value = NoteResult.Success(null)
+                    }
+                    .addOnFailureListener {
+                        value = NoteResult.Error(it)
+                    }
             } catch (e: Throwable) {
                 value = NoteResult.Error(e)
             }

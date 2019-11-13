@@ -18,6 +18,24 @@
             app:titleTextColor="@color/appbar_text_color"
             app:title="@string/app_name"/>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/white"/>
+
+        <HorizontalScrollView
+            android:id="@+id/hsv_color_picker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none">
+
+            <ru.geekbrains.notes.customviews.ColorPickerView
+                android:id="@+id/color_picker"
+                android:layout_width="wrap_content"
+                android:layout_height="?attr/actionBarSize"/>
+
+        </HorizontalScrollView>
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <LinearLayout

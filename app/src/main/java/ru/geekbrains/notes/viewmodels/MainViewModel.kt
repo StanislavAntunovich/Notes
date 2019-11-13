@@ -7,9 +7,9 @@ import ru.geekbrains.notes.data.NotesRepository
 import ru.geekbrains.notes.data.entity.Note
 import ru.geekbrains.notes.livedata.MainViewState
 
-class MainViewModel : BaseViewModel<List<Note>?, MainViewState>() {
+class MainViewModel(notesRepository: NotesRepository) : BaseViewModel<List<Note>?, MainViewState>() {
 
-    private val notesRepo = NotesRepository.getNotes()
+    private val notesRepo = notesRepository.getNotes()
     private val notesObserver = Observer<NoteResult> { result ->
         result ?: return@Observer
 

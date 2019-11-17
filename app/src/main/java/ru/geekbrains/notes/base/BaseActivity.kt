@@ -28,6 +28,7 @@ abstract class BaseActivity<T, S : BaseViewState<T>> : AppCompatActivity() {
 
         viewModel.viewState.observe(this, Observer {
             it ?: return@Observer
+
             it.error?.let { e ->
                 renderError(e)
                 return@Observer
@@ -37,6 +38,7 @@ abstract class BaseActivity<T, S : BaseViewState<T>> : AppCompatActivity() {
     }
 
     abstract fun renderData(data: T)
+
 
     private fun renderError(e: Throwable?) = e?.let {
         when (it) {

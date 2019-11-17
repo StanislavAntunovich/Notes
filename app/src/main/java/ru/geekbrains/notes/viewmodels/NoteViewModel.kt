@@ -6,29 +6,48 @@ import ru.geekbrains.notes.data.NotesRepository
 import ru.geekbrains.notes.data.entity.Note
 import ru.geekbrains.notes.livedata.NoteViewState
 
-class NoteViewModel : BaseViewModel<Note?, NoteViewState>() {
-    init {
-        viewStateLiveData.value = NoteViewState()
-    }
+class NoteViewModel(private val notesRepository: NotesRepository) :
+    BaseViewModel<NoteViewState.Data, NoteViewState>() {
 
-    private var pendingNote: Note? = null
+
+    private val pendingNote: Note?
+        get() = viewStateLiveData.value?.data?.note
 
     fun save(note: Note) {
-        pendingNote = note
+        viewStateLiveData.value = NoteViewState(NoteViewState.Data(note = note))
     }
 
     fun loadNote(noteId: String) {
-        NotesRepository.getNoteById(noteId).observeForever {result ->
-            when(result) {
-                is NoteResult.Success<*> -> viewStateLiveData.value = NoteViewState(result.data as? Note)
+        notesRepository.getNoteById(noteId).observeForever { result ->
+            result ?: return@observeForever
+
+            when (result) {
+                is NoteResult.Success<*> -> viewStateLiveData.value =
+                    NoteViewState(NoteViewState.Data(note = result.data as? Note))
                 is NoteResult.Error -> viewStateLiveData.value = NoteViewState(error = result.error)
             }
         }
     }
 
+    fun deleteNote() {
+        pendingNote?.let { note ->
+            notesRepository.deleteNote(note.id).observeForever {result ->
+                result?.let {
+                    when (it) {
+                        is NoteResult.Success<*> -> viewStateLiveData.value = NoteViewState(
+                            NoteViewState.Data(true))
+                        is NoteResult.Error -> viewStateLiveData.value = NoteViewState(error = it.error)
+                    }
+                }
+
+            }
+
+        }
+    }
+
     override fun onCleared() {
         pendingNote?.let {
-            NotesRepository.saveNote(it)
+            notesRepository.saveNote(it)
         }
         super.onCleared()
     }

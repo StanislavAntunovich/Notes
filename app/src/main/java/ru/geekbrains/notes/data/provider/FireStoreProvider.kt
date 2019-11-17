@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import com.github.ajalt.timberkt.Timber
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QueryDocumentSnapshot
 import ru.geekbrains.notes.data.NoteResult
 import ru.geekbrains.notes.data.entity.Note
 import ru.geekbrains.notes.data.entity.User
@@ -37,12 +36,8 @@ class FireStoreProvider(
                 getUserNotesCollection().addSnapshotListener { snapshot, e ->
                     e?.let { value = NoteResult.Error(it) }
                         ?: let {
-                            snapshot?.let {
-                                val notes = mutableListOf<Note>()
-                                for (doc: QueryDocumentSnapshot in snapshot) {
-                                    val note: Note = doc.toObject(Note::class.java)
-                                    notes.add(note)
-                                }
+                            snapshot?.let {qs ->
+                                val notes = qs.documents.map { it.toObject(Note::class.java) }
                                 Timber.d { "got all notes: $notes" }
                                 value = NoteResult.Success(notes)
                             }

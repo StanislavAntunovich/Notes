@@ -14,10 +14,9 @@ import ru.geekbrains.notes.adapters.NotesAdapter
 import ru.geekbrains.notes.base.BaseActivity
 import ru.geekbrains.notes.data.entity.Note
 import ru.geekbrains.notes.dialogs.LogOutDialog
-import ru.geekbrains.notes.livedata.MainViewState
 import ru.geekbrains.notes.viewmodels.MainViewModel
 
-class MainActivity : BaseActivity<List<Note>?, MainViewState>(), LogOutDialog.LogoutListener {
+class MainActivity : BaseActivity<List<Note>?>(), LogOutDialog.LogoutListener{
 
     companion object {
         fun start(context: Context) = Intent(context, MainActivity::class.java).run {
@@ -27,7 +26,7 @@ class MainActivity : BaseActivity<List<Note>?, MainViewState>(), LogOutDialog.Lo
 
     private lateinit var adapter: NotesAdapter
 
-    override val viewModel: MainViewModel by viewModel()
+    override val model: MainViewModel by viewModel()
 
     override val layoutResId = R.layout.activity_main
 

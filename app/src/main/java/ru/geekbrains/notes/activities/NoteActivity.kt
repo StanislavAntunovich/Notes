@@ -17,11 +17,11 @@ import ru.geekbrains.notes.R
 import ru.geekbrains.notes.base.BaseActivity
 import ru.geekbrains.notes.common.format
 import ru.geekbrains.notes.data.entity.Note
-import ru.geekbrains.notes.livedata.NoteViewState
+import ru.geekbrains.notes.livedata.Data
 import ru.geekbrains.notes.viewmodels.NoteViewModel
 import java.util.*
 
-class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
+class NoteActivity : BaseActivity<Data>() {
 
     companion object {
         private val EXTRA_NOTE = NoteActivity::class.java.name + "extra"
@@ -36,7 +36,7 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
 
     private var note: Note? = null
     override val layoutResId: Int? = R.layout.activity_note
-    override val viewModel: NoteViewModel by viewModel()
+    override val model: NoteViewModel by viewModel()
     private var color = Note.Color.WHITE
 
     private val textChangeListener = object : TextWatcher {
@@ -62,7 +62,7 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
         val noteId = intent.getStringExtra(EXTRA_NOTE)
 
         noteId?.let {
-            viewModel.loadNote(it)
+            model.loadNote(it)
         }
 
         color_picker.onColorClickListener = {
@@ -96,7 +96,7 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
         }
     }
 
-    override fun renderData(data: NoteViewState.Data) {
+    override fun renderData(data: Data) {
         if (data.isDeleted) {
             finish()
             return
@@ -119,14 +119,14 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
             lastChanged = Date()
         ) ?: Note(UUID.randomUUID().toString(), title, text, color)
 
-        viewModel.save(note!!)
+        model.save(note!!)
     }
 
     private fun deleteNote() {
         alert {
             messageResource = R.string.alert_delete_message
             negativeButton(R.string.alert_delete_note_no) { dialog -> dialog.dismiss() }
-            positiveButton(R.string.alert_delete_note_ok) { viewModel.deleteNote() }
+            positiveButton(R.string.alert_delete_note_ok) { model.deleteNote() }
         }.show()
     }
 

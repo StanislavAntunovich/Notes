@@ -5,19 +5,28 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import com.firebase.ui.auth.AuthUI
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.consumeEach
 import ru.geekbrains.notes.R
 import ru.geekbrains.notes.data.exceptions.NoAuthException
+import kotlin.coroutines.CoroutineContext
 
 
-abstract class BaseActivity<T, S : BaseViewState<T>> : AppCompatActivity() {
+abstract class BaseActivity<T> : AppCompatActivity(), CoroutineScope {
     companion object {
         private const val SIGN_IN_CODE = 3423
     }
 
-    abstract val viewModel: BaseViewModel<T, S>
+    override val coroutineContext: CoroutineContext by lazy {
+        Dispatchers.Main + Job()
+    }
+
+    abstract val model: BaseViewModel<T>
     abstract val layoutResId: Int?
+
+    private lateinit var dataJob: Job
+    private lateinit var errorJob: Job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,16 +34,33 @@ abstract class BaseActivity<T, S : BaseViewState<T>> : AppCompatActivity() {
         layoutResId?.let {
             setContentView(it)
         }
+    }
 
-        viewModel.viewState.observe(this, Observer {
-            it ?: return@Observer
+    override fun onStart() {
+        super.onStart()
 
-            it.error?.let { e ->
-                renderError(e)
-                return@Observer
+        dataJob = launch {
+            model.data.consumeEach {
+                renderData(it)
             }
-            renderData(it.data)
-        })
+        }
+
+        errorJob = launch {
+            model.errors.consumeEach {
+                renderError(it)
+            }
+        }
+    }
+
+    override fun onStop() {
+        dataJob.cancel()
+        errorJob.cancel()
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        coroutineContext.cancel()
+        super.onDestroy()
     }
 
     abstract fun renderData(data: T)

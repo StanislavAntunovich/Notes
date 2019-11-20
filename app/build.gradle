@@ -39,6 +39,9 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.android.support:multidex:1.0.3'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
 
     implementation "androidx.lifecycle:lifecycle-runtime:$arch_lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
@@ -57,12 +60,15 @@ dependencies {
     implementation 'org.jetbrains.anko:anko-commons:0.10.8'
 
     testImplementation 'junit:junit:4.12'
+    testImplementation 'android.arch.core:core-testing:1.1.1'
+    testImplementation 'io.mockk:mockk:1.9.3'
+
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-
-    implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.0.0'
-    implementation 'com.google.android.material:material:1.0.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.2.0'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
+    androidTestImplementation 'io.mockk:mockk-android:1.9.3'
 }
 
 apply plugin: 'com.google.gms.google-services'

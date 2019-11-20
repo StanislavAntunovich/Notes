@@ -1,5 +1,6 @@
 package ru.geekbrains.notes.viewmodels
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.Observer
 import ru.geekbrains.notes.base.BaseViewModel
 import ru.geekbrains.notes.data.NoteResult
@@ -25,7 +26,8 @@ class MainViewModel(notesRepository: NotesRepository) : BaseViewModel<List<Note>
         notesRepo.observeForever(notesObserver)
     }
 
-    override fun onCleared() {
+    @VisibleForTesting
+    public override fun onCleared() {
         notesRepo.removeObserver(notesObserver)
         super.onCleared()
     }

@@ -1,34 +1,33 @@
 package ru.geekbrains.notes.viewmodels
 
 import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.Observer
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import ru.geekbrains.notes.base.BaseViewModel
 import ru.geekbrains.notes.data.NoteResult
 import ru.geekbrains.notes.data.NotesRepository
 import ru.geekbrains.notes.data.entity.Note
-import ru.geekbrains.notes.livedata.MainViewState
 
-class MainViewModel(notesRepository: NotesRepository) : BaseViewModel<List<Note>?, MainViewState>() {
+class MainViewModel(notesRepository: NotesRepository) : BaseViewModel<List<Note>?>() {
 
-    private val notesRepo = notesRepository.getNotes()
-    private val notesObserver = Observer<NoteResult> { result ->
-        result ?: return@Observer
-
-        when (result) {
-            is NoteResult.Success<*> -> viewStateLiveData.value =
-                MainViewState(result.data as? List<Note>)
-            is NoteResult.Error -> viewStateLiveData.value = MainViewState(error = result.error)
-        }
-    }
+    private val notesChannel = notesRepository.getNotes()
 
     init {
-        viewStateLiveData.value = MainViewState()
-        notesRepo.observeForever(notesObserver)
+        launch {
+            notesChannel.consumeEach {
+                when (it) {
+                    is NoteResult.Success<*> -> setData(it.data as? List<Note>)
+                    is NoteResult.Error -> setError(it.error)
+                }
+            }
+        }
+
     }
+
 
     @VisibleForTesting
     public override fun onCleared() {
-        notesRepo.removeObserver(notesObserver)
+        notesChannel.cancel()
         super.onCleared()
     }
 
